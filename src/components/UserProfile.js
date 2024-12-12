@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Settings, Edit2, BookOpen, Heart, MessageCircle, Bookmark, Calendar, MapPin, Link as LinkIcon, Twitter, Github, Linkedin } from "lucide-react";
+import { Settings, Heart, MessageCircle, Calendar, MapPin, Link as LinkIcon, Twitter, Github, Linkedin } from "lucide-react";
 
 const UserProfile = ({ isDark }) => {
 	const [activeTab, setActiveTab] = useState("articles");

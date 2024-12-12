@@ -39,7 +39,7 @@ const Header = ({ isDark, toggleTheme, currentUser, onLogout, posts }) => {
 						{/* Logo */}
 						<Link to="/" className="flex-shrink-0">
 							<h1 className={`text-2xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>
-								Blog<span className="text-blue-500">Elite</span>
+								BlogX<span className="text-blue-500">Elite</span>
 							</h1>
 						</Link>
 

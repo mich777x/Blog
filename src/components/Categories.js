@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Folder, FileText, TrendingUp } from "lucide-react";
+import { FileText, TrendingUp } from "lucide-react";
 
 const Categories = ({ isDark, posts, onCategoryChange }) => {
 	const navigate = useNavigate();
