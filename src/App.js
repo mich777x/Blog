@@ -8,7 +8,6 @@ import About from "./components/About";
 import PostEditor from "./components/PostEditor";
 import PostView from "./components/PostView";
 import ProtectedRoute from "./components/ProtectedRoute";
-import UserProfile from "./components/UserProfile";
 import { UserProvider } from "./contexts/UserContext";
 import Login from "./components/Login";
 import { generateRandomPosts } from "./utils/postGenerator";
@@ -126,38 +125,19 @@ const App = () => {
 	};
 
 	// Update Post Handler
+
 	const handleUpdatePost = async (updatedPost) => {
 		try {
-			// First, update the posts state
-			const updatedPosts = posts.map((post) => {
-				if (post.id === updatedPost.id) {
-					return {
-						...post,
-						title: updatedPost.title,
-						excerpt: updatedPost.excerpt,
-						content: updatedPost.content,
-						categories: updatedPost.categories,
-						lastModified: new Date().toISOString(),
-					};
-				}
-				return post;
+			setPosts((prevPosts) => {
+				const updatedPosts = prevPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post));
+				// Save to localStorage
+				DataService.savePosts(updatedPosts);
+				return updatedPosts;
 			});
-
-			// Update state first
-			setPosts(updatedPosts);
-
-			// Save to DataService
-			await DataService.savePosts(updatedPosts);
-
-			// Navigate after ensuring state is updated
-			setTimeout(() => {
-				navigate(`/posts/${updatedPost.id}`);
-			}, 0);
-
-			return true; // Indicate success
+			return updatedPost;
 		} catch (error) {
 			console.error("Error updating post:", error);
-			return false; // Indicate failure
+			throw error;
 		}
 	};
 
@@ -200,7 +180,6 @@ const App = () => {
 							}
 						/>
 						<Route path="/posts/:id" element={<PostView posts={posts} onEdit={handleUpdatePost} onDelete={handleDeletePost} isDark={isDark} currentUser={currentUser} />} />
-						<Route path="/profile" element={<UserProfile isDark={isDark} />} />
 					</Routes>
 
 					{/* Login Modal */}
