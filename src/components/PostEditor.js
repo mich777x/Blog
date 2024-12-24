@@ -210,12 +210,12 @@ const PostEditor = ({ posts, onSave, isDark, currentUser }) => {
 					<p className="mt-2 text-sm text-gray-500">Hold Ctrl/Cmd to select multiple categories</p>
 				</div>
 
-				<div className="flex space-x-4">
-					<button type="submit" disabled={isSubmitting} className="w-24 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50">
-						{isSubmitting ? "Saving..." : id ? "Update" : "Publish"}
+				<div className="flex gap-4">
+					<button type="submit" disabled={isSubmitting} className="inline-flex w-24 h-10 items-center justify-center bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 relative z-10">
+						<span className="pointer-events-none">{isSubmitting ? "Saving..." : id ? "Update" : "Publish"}</span>
 					</button>
 
-					<Link to="/" className="w-24 h-10 flex items-center justify-center bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+					<Link to="/" className="inline-flex w-24 h-10 items-center justify-center bg-gray-500 text-white rounded-lg hover:bg-gray-600 relative z-10">
 						Cancel
 					</Link>
 				</div>
