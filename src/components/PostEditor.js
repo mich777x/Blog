@@ -211,10 +211,11 @@ const PostEditor = ({ posts, onSave, isDark, currentUser }) => {
 				</div>
 
 				<div className="flex space-x-4">
-					<button type="submit" disabled={isSubmitting} className={`px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}>
-						{isSubmitting ? "Saving..." : id ? "Update Post" : "Publish Post"}
+					<button type="submit" disabled={isSubmitting} className="w-24 h-10 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50">
+						{isSubmitting ? "Saving..." : id ? "Update" : "Publish"}
 					</button>
-					<Link to="/" className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+
+					<Link to="/" className="w-24 h-10 flex items-center justify-center bg-gray-500 text-white rounded-lg hover:bg-gray-600">
 						Cancel
 					</Link>
 				</div>
