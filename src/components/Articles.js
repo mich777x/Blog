@@ -1,9 +1,14 @@
 import React from "react";
 import ArticleCard from "./ArticleCard";
-import { useNavigate } from "react-router-dom";
 
 const Articles = ({ posts, isDark, currentUser, onDeletePost }) => {
-	const navigate = useNavigate();
+	if (!Array.isArray(posts)) {
+		return (
+			<div className="py-8">
+				<h1 className={`text-3xl font-bold mb-8 ${isDark ? "text-white" : "text-gray-900"}`}>No articles available</h1>
+			</div>
+		);
+	}
 
 	return (
 		<div className="py-8">
@@ -11,7 +16,7 @@ const Articles = ({ posts, isDark, currentUser, onDeletePost }) => {
 
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 				{posts.map((post) => (
-					<ArticleCard key={post.id} article={post} isDark={isDark} onEdit={() => navigate(`/edit-post/${post.id}`)} onDelete={onDeletePost} currentUser={currentUser} />
+					<ArticleCard key={post.id} article={post} isDark={isDark} currentUser={currentUser} onDelete={onDeletePost} />
 				))}
 			</div>
 		</div>

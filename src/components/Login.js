@@ -2,47 +2,47 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
 
-const Login = ({ isDark }) => {
+const Login = ({ isDark, onLogin }) => {
 	const navigate = useNavigate();
 	const { updateUser } = useUser();
 	const [loading, setLoading] = useState(false);
+	const [email, setEmail] = useState("demo@example.com");
+	const [password, setPassword] = useState("password");
+	const [error, setError] = useState("");
 
 	const handleLogin = async (e) => {
 		e.preventDefault();
 		setLoading(true);
+		setError("");
 
-		// Simulate login - in a real app, this would be an API call
-		const mockUser = {
-			id: "1",
-			name: "John Doe",
-			username: "@johndoe",
-			email: "john@example.com",
-			avatar: "/api/placeholder/150/150",
-			bio: "Frontend Developer passionate about creating beautiful user experiences",
-			location: "San Francisco, CA",
-			website: "johndoe.dev",
-			joinDate: new Date().toISOString(),
-			stats: {
-				articles: 12,
-				followers: 1234,
-				following: 567,
-			},
-			social: {
-				twitter: "@johndoe",
-				github: "johndoe",
-				linkedin: "johndoe",
-			},
-			latestPost: {
-				title: "Building Modern Web Applications",
-				excerpt: "Learn how to create scalable and maintainable web applications...",
-			},
-		};
+		try {
+			// Mock user data
+			const mockUser = {
+				id: 1,
+				name: "Demo User",
+				avatar: "/api/placeholder/100/100?text=DU",
+				role: "Writer",
+				bio: "Frontend Developer passionate about creating beautiful user experiences",
+				stats: {
+					articles: 12,
+					followers: 1234,
+					following: 567,
+				},
+			};
 
-		setTimeout(() => {
+			// Simulate API delay
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+
+			// Update both the UserContext and the App's state
 			updateUser(mockUser);
+			onLogin(mockUser);
+
+			navigate("/");
+		} catch (err) {
+			setError("Failed to login. Please try again.");
+		} finally {
 			setLoading(false);
-			navigate("/profile");
-		}, 1000);
+		}
 	};
 
 	return (
@@ -50,15 +50,17 @@ const Login = ({ isDark }) => {
 			<div className={`max-w-md w-full ${isDark ? "bg-gray-800" : "bg-white"} rounded-xl shadow-lg p-8`}>
 				<h2 className="text-3xl font-bold text-center mb-8">Welcome Back</h2>
 
+				{error && <div className="mb-6 p-4 bg-red-100 text-red-600 rounded-lg">{error}</div>}
+
 				<form onSubmit={handleLogin} className="space-y-6">
 					<div>
 						<label className="block text-sm font-medium mb-2">Email</label>
-						<input type="email" defaultValue="john@example.com" className={`w-full p-3 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-100"}`} />
+						<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={`w-full p-3 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-100"}`} required />
 					</div>
 
 					<div>
 						<label className="block text-sm font-medium mb-2">Password</label>
-						<input type="password" defaultValue="password" className={`w-full p-3 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-100"}`} />
+						<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className={`w-full p-3 rounded-lg ${isDark ? "bg-gray-700" : "bg-gray-100"}`} required />
 					</div>
 
 					<div className="flex items-center justify-between">
@@ -66,16 +68,16 @@ const Login = ({ isDark }) => {
 							<input type="checkbox" className="mr-2" />
 							<span className="text-sm">Remember me</span>
 						</label>
-						<a href="#" className="text-sm text-blue-500 hover:text-blue-600">
+						<button type="button" className="text-sm text-blue-500 hover:text-blue-600">
 							Forgot password?
-						</a>
+						</button>
 					</div>
 
 					<button
 						type="submit"
 						disabled={loading}
-						className={`w-full py-3 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors
-                            ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+						className={`w-full py-3 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
+              transition-colors ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
 					>
 						{loading ? "Signing in..." : "Sign In"}
 					</button>
@@ -83,10 +85,7 @@ const Login = ({ isDark }) => {
 
 				<div className="mt-6 text-center">
 					<p className="text-sm">
-						Don't have an account?{" "}
-						<a href="#" className="text-blue-500 hover:text-blue-600">
-							Sign up
-						</a>
+						Don't have an account? <button className="text-blue-500 hover:text-blue-600">Sign up</button>
 					</p>
 				</div>
 			</div>

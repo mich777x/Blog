@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, User, Bell, Sun, Moon } from "lucide-react";
+import { Search, Bell, Sun, Moon } from "lucide-react";
 import SearchOverlay from "./SearchOverlay";
 import { useUser } from "../contexts/UserContext";
 
 const Header = ({ isDark, toggleTheme, currentUser, onLogout, posts }) => {
 	const [isSearchOpen, setIsSearchOpen] = useState(false);
 	const [showNotifications, setShowNotifications] = useState(false);
-	const { user, logout } = useUser();
-	const navigate = useNavigate();
+	// const [showLoginModal, setShowLoginModal] = useState(false);
 	const location = useLocation();
+	const navigate = useNavigate();
 
 	const navigationItems = [{ name: "Home", path: "/" }, { name: "Articles", path: "/articles" }, { name: "Categories", path: "/categories" }, { name: "About", path: "/about" }, ...(currentUser ? [{ name: "New Post", path: "/new-post" }] : [])];
 
@@ -17,19 +17,16 @@ const Header = ({ isDark, toggleTheme, currentUser, onLogout, posts }) => {
 		return location.pathname === path;
 	};
 
-	const handleUserClick = () => {
-		if (user) {
-			navigate("/profile");
-		} else {
-			navigate("/login");
-		}
+	const handleLoginClick = () => {
+		// For now, just navigate to the login page
+		navigate("/login");
 	};
 
-	const [notifications] = useState([
+	const notifications = [
 		{ id: 1, type: "like", content: "New post published", time: "2m ago" },
 		{ id: 2, type: "comment", content: "Someone commented on your post", time: "5m ago" },
 		{ id: 3, type: "follow", content: "New follower", time: "10m ago" },
-	]);
+	];
 
 	return (
 		<>
@@ -62,36 +59,45 @@ const Header = ({ isDark, toggleTheme, currentUser, onLogout, posts }) => {
 								<Search size={20} />
 							</button>
 
-							<div className="relative">
-								<button onClick={() => setShowNotifications(!showNotifications)} className={`p-2 rounded-full ${isDark ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"} transition-colors`} title="Notifications">
-									<Bell size={20} />
-									<span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full" />
-								</button>
+							{currentUser && (
+								<div className="relative">
+									<button onClick={() => setShowNotifications(!showNotifications)} className={`p-2 rounded-full ${isDark ? "text-gray-300 hover:bg-gray-800" : "text-gray-700 hover:bg-gray-100"} transition-colors`} title="Notifications">
+										<Bell size={20} />
+										<span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full" />
+									</button>
 
-								{showNotifications && (
-									<div className={`absolute right-0 mt-2 w-80 rounded-lg shadow-lg ${isDark ? "bg-gray-800" : "bg-white"} border overflow-hidden`}>
-										<div className="p-4">
-											<h3 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Notifications</h3>
-											<div className="mt-2 space-y-2">
-												{notifications.map((notification) => (
-													<div key={notification.id} className={`p-3 rounded-lg ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-50"} cursor-pointer`}>
-														<p className={`text-sm ${isDark ? "text-gray-300" : "text-gray-600"}`}>{notification.content}</p>
-														<span className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>{notification.time}</span>
-													</div>
-												))}
+									{showNotifications && (
+										<div className={`absolute right-0 mt-2 w-80 rounded-lg shadow-lg ${isDark ? "bg-gray-800" : "bg-white"} border overflow-hidden`}>
+											<div className="p-4">
+												<h3 className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>Notifications</h3>
+												<div className="mt-2 space-y-2">
+													{notifications.map((notification) => (
+														<div key={notification.id} className={`p-3 rounded-lg ${isDark ? "hover:bg-gray-700" : "hover:bg-gray-50"} cursor-pointer`}>
+															<p className={`text-sm ${isDark ? "text-gray-300" : "text-gray-600"}`}>{notification.content}</p>
+															<span className={`text-xs ${isDark ? "text-gray-400" : "text-gray-500"}`}>{notification.time}</span>
+														</div>
+													))}
+												</div>
 											</div>
 										</div>
-									</div>
-								)}
-							</div>
+									)}
+								</div>
+							)}
 
-							<div className="relative">
-								<Link to="/profile">
-									<button className={`p-2 rounded-full ${isDark ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"} transition-colors duration-200`}>
-										<User size={20} />
+							{currentUser ? (
+								<div className="flex items-center space-x-2">
+									<Link to="/profile">
+										<img src={currentUser.avatar} alt={currentUser.name} className="w-8 h-8 rounded-full cursor-pointer" />
+									</Link>
+									<button onClick={onLogout} className={`text-sm ${isDark ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-gray-900"}`}>
+										Logout
 									</button>
-								</Link>
-							</div>
+								</div>
+							) : (
+								<button onClick={handleLoginClick} className={`px-4 py-2 rounded-lg ${isDark ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-500 hover:bg-blue-600"} text-white transition-colors`}>
+									Login
+								</button>
+							)}
 						</div>
 					</div>
 				</div>
@@ -99,12 +105,6 @@ const Header = ({ isDark, toggleTheme, currentUser, onLogout, posts }) => {
 
 			{/* Search Overlay */}
 			<SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} isDark={isDark} posts={posts} />
-
-			<div className="relative">
-				<button onClick={handleUserClick} className={`p-2 rounded-full ${isDark ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-black"} transition-colors duration-200`}>
-					<User size={20} />
-				</button>
-			</div>
 		</>
 	);
 };

@@ -1,31 +1,36 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import generateImageUrl from "../utils/imageUtils";
+import { Link, useParams, useNavigate } from "react-router-dom";
 
-const PostEditor = ({ initialPost, onSave, isDark, currentUser }) => {
-	const [post, setPost] = useState(
-		initialPost || {
-			title: "",
-			excerpt: "",
-			content: "",
-			categories: [],
-			image: "/api/placeholder/800/400?default",
-		}
-	);
-
+const PostEditor = ({ posts, onSave, isDark, currentUser }) => {
+	const { id } = useParams();
+	const navigate = useNavigate();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [errors, setErrors] = useState({});
 
-	// Update image when title or categories change
+	const initialPost = {
+		title: "",
+		excerpt: "",
+		content: "",
+		categories: [],
+		image: "/api/placeholder/800/400",
+	};
+
+	const [post, setPost] = useState(initialPost);
+
+	// Load existing post data if editing
 	useEffect(() => {
-		if (post.title && post.categories.length > 0) {
-			const newImage = generateImageUrl(post.title, post.categories);
-			setPost((prev) => ({
-				...prev,
-				image: newImage,
-			}));
+		if (id && posts) {
+			const existingPost = posts.find((p) => p.id === parseInt(id));
+			if (existingPost) {
+				setPost({
+					...existingPost,
+					content: existingPost.content.replace(/<[^>]*>/g, ""), // Remove any existing HTML tags
+				});
+			} else {
+				navigate("/");
+			}
 		}
-	}, [post.title, post.categories]);
+	}, [id, posts, navigate]);
 
 	const validateForm = () => {
 		const newErrors = {};
@@ -40,13 +45,22 @@ const PostEditor = ({ initialPost, onSave, isDark, currentUser }) => {
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-
 		if (!validateForm()) return;
 
 		setIsSubmitting(true);
 		try {
-			await onSave(post);
-			// Navigation is handled by the parent component
+			const postData = {
+				...post,
+				id: id ? parseInt(id) : Date.now(),
+				author: currentUser,
+				date: post.date || new Date().toISOString(),
+				likes: post.likes || 0,
+				comments: post.comments || 0,
+				content: post.content.trim(), // Ensure clean text content
+			};
+
+			await onSave(postData);
+			navigate("/");
 		} catch (error) {
 			console.error("Error saving post:", error);
 			setErrors({ submit: "Failed to save post. Please try again." });
@@ -54,11 +68,48 @@ const PostEditor = ({ initialPost, onSave, isDark, currentUser }) => {
 			setIsSubmitting(false);
 		}
 	};
-	const categories = ["Technology", "Development", "Design", "AI", "Mobile", "Cloud Computing", "Cybersecurity", "Data Science", "Blockchain", "DevOps"];
+
+	const categories = ["Technology", "Development", "Design", "AI & ML", "Web Development", "Mobile Development", "DevOps", "Cloud Computing", "Cybersecurity", "Data Science"];
+
+	const handleFormat = (format) => {
+		const textarea = document.getElementById("content-editor");
+		const start = textarea.selectionStart;
+		const end = textarea.selectionEnd;
+		const text = textarea.value;
+		const selectedText = text.substring(start, end);
+		let newText = "";
+
+		switch (format) {
+			case "heading":
+				newText = `# ${selectedText}`;
+				break;
+			case "subheading":
+				newText = `## ${selectedText}`;
+				break;
+			case "list":
+				newText = selectedText
+					.split("\n")
+					.map((line) => `- ${line}`)
+					.join("\n");
+				break;
+			default:
+				newText = selectedText;
+		}
+
+		const newContent = text.substring(0, start) + newText + text.substring(end);
+		setPost({ ...post, content: newContent });
+
+		// Set cursor position after inserted text
+		setTimeout(() => {
+			textarea.focus();
+			const newCursorPos = start + newText.length;
+			textarea.setSelectionRange(newCursorPos, newCursorPos);
+		}, 0);
+	};
 
 	return (
 		<div className={`max-w-4xl mx-auto rounded-xl shadow-lg p-8 ${isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"}`}>
-			<h2 className="text-2xl font-bold mb-6">{initialPost ? "Edit Post" : "Create New Post"}</h2>
+			<h2 className="text-2xl font-bold mb-6">{id ? "Edit Post" : "Create New Post"}</h2>
 
 			{errors.submit && <div className="mb-6 p-4 bg-red-100 text-red-600 rounded-lg">{errors.submit}</div>}
 
@@ -76,7 +127,6 @@ const PostEditor = ({ initialPost, onSave, isDark, currentUser }) => {
 					<div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-300">
 						<img src={post.image} alt="Post preview" className="w-full h-full object-cover" />
 					</div>
-					<p className={`mt-2 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Image is automatically generated based on your post title and categories</p>
 				</div>
 
 				{/* Excerpt Input */}
@@ -86,65 +136,25 @@ const PostEditor = ({ initialPost, onSave, isDark, currentUser }) => {
 					{errors.excerpt && <p className="mt-1 text-sm text-red-500">{errors.excerpt}</p>}
 				</div>
 
-				{/* Content Input */}
+				{/* Content Editor */}
 				<div>
 					<label className="block mb-2 font-medium">Content</label>
 					<div className="border rounded-lg overflow-hidden">
-						<div className="border-b p-2 bg-gray-50 flex space-x-2">
-							<button
-								type="button"
-								onClick={() => {
-									const textarea = document.getElementById("content-editor");
-									const start = textarea.selectionStart;
-									const end = textarea.selectionEnd;
-									const text = textarea.value;
-									const before = text.substring(0, start);
-									const selection = text.substring(start, end);
-									const after = text.substring(end);
-									const newText = before + "**" + selection + "**" + after;
-									setPost({ ...post, content: newText });
-								}}
-								className="px-3 py-1 rounded hover:bg-gray-200"
-							>
-								Bold
+						<div className="border-b p-2 bg-gray-50 flex flex-wrap gap-2">
+							<button type="button" onClick={() => handleFormat("heading")} className="px-3 py-1 rounded hover:bg-gray-200">
+								Heading
 							</button>
-							<button
-								type="button"
-								onClick={() => {
-									const textarea = document.getElementById("content-editor");
-									const start = textarea.selectionStart;
-									const end = textarea.selectionEnd;
-									const text = textarea.value;
-									const before = text.substring(0, start);
-									const selection = text.substring(start, end);
-									const after = text.substring(end);
-									const newText = before + "*" + selection + "*" + after;
-									setPost({ ...post, content: newText });
-								}}
-								className="px-3 py-1 rounded hover:bg-gray-200"
-							>
-								Italic
+							<button type="button" onClick={() => handleFormat("subheading")} className="px-3 py-1 rounded hover:bg-gray-200">
+								Subheading
 							</button>
-							<button
-								type="button"
-								onClick={() => {
-									const textarea = document.getElementById("content-editor");
-									const start = textarea.selectionStart;
-									const text = textarea.value;
-									const before = text.substring(0, start);
-									const after = text.substring(start);
-									const newText = before + "\n- " + after;
-									setPost({ ...post, content: newText });
-								}}
-								className="px-3 py-1 rounded hover:bg-gray-200"
-							>
+							<button type="button" onClick={() => handleFormat("list")} className="px-3 py-1 rounded hover:bg-gray-200">
 								List
 							</button>
 						</div>
-						<textarea id="content-editor" value={post.content} onChange={(e) => setPost({ ...post, content: e.target.value })} className={`w-full p-4 min-h-[400px] ${isDark ? "bg-gray-700 text-white" : "bg-white text-gray-900"} ${errors.content ? "border-red-500" : ""}`} placeholder="Write your post content here... Use Markdown for formatting" />
+						<textarea id="content-editor" value={post.content} onChange={(e) => setPost({ ...post, content: e.target.value })} className={`w-full p-4 min-h-[400px] ${isDark ? "bg-gray-700 text-white" : "bg-white text-gray-900"} ${errors.content ? "border-red-500" : ""}`} placeholder="Write your post content here..." />
 					</div>
 					{errors.content && <p className="mt-1 text-sm text-red-500">{errors.content}</p>}
-					<p className={`mt-2 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Supports Markdown formatting: **bold**, *italic*, - for lists</p>
+					<p className={`mt-2 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Use the toolbar buttons to format your text</p>
 				</div>
 
 				{/* Categories Selection */}
@@ -174,7 +184,7 @@ const PostEditor = ({ initialPost, onSave, isDark, currentUser }) => {
 				{/* Action Buttons */}
 				<div className="flex space-x-4">
 					<button type="submit" disabled={isSubmitting} className={`px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}>
-						{isSubmitting ? "Saving..." : initialPost ? "Update Post" : "Publish Post"}
+						{isSubmitting ? "Saving..." : id ? "Update Post" : "Publish Post"}
 					</button>
 					<Link to="/" className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
 						Cancel

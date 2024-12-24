@@ -1,6 +1,5 @@
-import React, { useState, useRef } from "react";
-import { Routes, Route, useParams, useNavigate } from "react-router-dom";
-import ReadingProgress from "./components/ReadingProgress";
+import React, { useState, useEffect, useCallback } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import Header from "./components/Header";
 import Home from "./components/Home";
 import Articles from "./components/Articles";
@@ -11,74 +10,98 @@ import PostView from "./components/PostView";
 import ProtectedRoute from "./components/ProtectedRoute";
 import UserProfile from "./components/UserProfile";
 import { UserProvider } from "./contexts/UserContext";
-import Login from "./components/Login.js";
-
-// Route Components
-const EditPostWrapper = ({ posts, onUpdatePost, isDark, currentUser }) => {
-	const { id } = useParams();
-	const post = posts.find((post) => post.id === parseInt(id));
-
-	return (
-		<ProtectedRoute currentUser={currentUser}>
-			<PostEditor initialPost={post} onSave={onUpdatePost} isDark={isDark} currentUser={currentUser} />
-		</ProtectedRoute>
-	);
-};
-
-const ViewPostWrapper = ({ posts, onEdit, onDelete, isDark, currentUser }) => {
-	const { id } = useParams();
-	const post = posts.find((post) => post.id === parseInt(id));
-
-	return <PostView post={post} onEdit={onEdit} onDelete={onDelete} isDark={isDark} currentUser={currentUser} />;
-};
-
-const CreatePostWrapper = ({ onSave, isDark, currentUser }) => {
-	const navigate = useNavigate();
-
-	const handleSave = async (post) => {
-		await onSave(post);
-		navigate("/");
-	};
-
-	return (
-		<ProtectedRoute currentUser={currentUser}>
-			<PostEditor onSave={handleSave} isDark={isDark} currentUser={currentUser} />
-		</ProtectedRoute>
-	);
-};
+import Login from "./components/Login";
+import { generateRandomPosts } from "./utils/postGenerator";
+import DataService from "./services/DataService";
 
 const App = () => {
-	// State Management
+	const navigate = useNavigate();
 	const [isDark, setIsDark] = useState(false);
 	const [selectedCategory, setSelectedCategory] = useState("All");
 	const [showLoginModal, setShowLoginModal] = useState(false);
-	const containerRef = useRef(null);
-
-	// Initialize posts with a default post
-	const [posts, setPosts] = useState([
-		{
-			id: 1,
-			title: "Welcome to BlogElite",
-			excerpt: "This is your first post. Login to start creating your own content.",
-			content: "Welcome to BlogElite. This is a sample post to get you started.",
-			image: "https://picsum.photos/seed/welcome/800/400",
-			categories: ["Getting Started"],
-			author: {
-				name: "Admin",
-				avatar: "https://picsum.photos/seed/admin/100/100",
-				role: "Administrator",
-			},
-			date: new Date().toISOString(),
-			likes: 0,
-			comments: 0,
-			shares: 0,
-			views: 0,
-		},
-	]);
-
 	const [currentUser, setCurrentUser] = useState(null);
+	const [posts, setPosts] = useState(() => generateRandomPosts(15));
 
-	// Post Management Functions
+	// User Management Functions
+	const handleLogin = (userData) => {
+		const user = {
+			id: 1,
+			name: "Demo User",
+			avatar: "/api/placeholder/100/100?text=DU",
+			role: "Writer",
+			bio: "A passionate writer sharing thoughts and ideas",
+			stats: {
+				articles: 5,
+				followers: "100",
+			},
+		};
+		setCurrentUser(user);
+		setShowLoginModal(false);
+		navigate("/"); // Redirect to home after login
+	};
+
+	const handleLogout = () => {
+		setCurrentUser(null);
+		navigate("/");
+	};
+
+	useEffect(() => {
+		const savedCategory = localStorage.getItem("selectedCategory");
+		if (savedCategory) {
+			setSelectedCategory(savedCategory);
+		}
+	}, []);
+
+	useEffect(() => {
+		localStorage.setItem("selectedCategory", selectedCategory);
+	}, [selectedCategory]);
+	const handleLikePost = useCallback(
+		(postId) => {
+			setPosts((prevPosts) => {
+				const updatedPosts = prevPosts.map((post) => {
+					if (post.id === postId) {
+						const isCurrentlyLiked = DataService.hasLiked("post", postId, currentUser?.id);
+						const newLikesCount = isCurrentlyLiked ? post.likes - 1 : post.likes + 1;
+
+						// Save like state
+						DataService.saveLike("post", postId, currentUser?.id);
+
+						return {
+							...post,
+							likes: newLikesCount,
+						};
+					}
+					return post;
+				});
+
+				// Save updated posts to localStorage
+				DataService.savePosts(updatedPosts);
+				return updatedPosts;
+			});
+		},
+		[currentUser]
+	);
+
+	// Add Comment Handler
+	const handleAddComment = useCallback((postId, commentContent) => {
+		setPosts((prevPosts) => {
+			const updatedPosts = prevPosts.map((post) => {
+				if (post.id === postId) {
+					return {
+						...post,
+						comments: (post.comments || 0) + 1,
+					};
+				}
+				return post;
+			});
+
+			// Save updated posts to localStorage
+			DataService.savePosts(updatedPosts);
+			return updatedPosts;
+		});
+	}, []);
+
+	// Create Post Handler
 	const handleCreatePost = async (post) => {
 		if (!currentUser) {
 			setShowLoginModal(true);
@@ -93,63 +116,63 @@ const App = () => {
 			image: `https://picsum.photos/seed/${Date.now()}/800/400`,
 			likes: 0,
 			comments: 0,
-			shares: 0,
 			views: 0,
 		};
-		setPosts((prevPosts) => [newPost, ...prevPosts]);
+
+		const updatedPosts = [newPost, ...posts];
+		setPosts(updatedPosts);
+		DataService.savePosts(updatedPosts);
 		return newPost;
 	};
 
+	// Update Post Handler
 	const handleUpdatePost = async (updatedPost) => {
-		setPosts((prevPosts) => prevPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post)));
-	};
-
-	const handleDeletePost = async (postId) => {
-		setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
-	};
-
-	// User Management Functions
-	const handleLogin = () => {
-		setCurrentUser({
-			id: 1,
-			name: "Demo User",
-			avatar: "https://picsum.photos/seed/user1/100/100",
-			role: "Writer",
-			bio: "A passionate writer sharing thoughts and ideas",
-			stats: {
-				articles: 5,
-				followers: "100",
-			},
+		setPosts((prevPosts) => {
+			const updatedPosts = prevPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post));
+			DataService.savePosts(updatedPosts);
+			return updatedPosts;
 		});
-		setShowLoginModal(false);
 	};
 
-	const handleLogout = () => {
-		setCurrentUser(null);
+	// Delete Post Handler
+	const handleDeletePost = async (postId) => {
+		setPosts((prevPosts) => {
+			const updatedPosts = prevPosts.filter((post) => post.id !== postId);
+			DataService.savePosts(updatedPosts);
+			return updatedPosts;
+		});
 	};
 
 	return (
-		<UserProvider>
+		<UserProvider value={{ user: currentUser, updateUser: setCurrentUser }}>
 			<div className={`min-h-screen ${isDark ? "bg-gray-900" : "bg-gray-50"}`}>
-				<ReadingProgress target={containerRef} />
-				<Header
-					isDark={isDark}
-					toggleTheme={() => setIsDark(!isDark)}
-					currentUser={currentUser}
-					onLogout={handleLogout}
-					posts={posts} // Make sure this is being passed
-				/>
+				<Header isDark={isDark} toggleTheme={() => setIsDark(!isDark)} currentUser={currentUser} onLogout={handleLogout} posts={posts} />
 
-				<main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20" ref={containerRef}>
+				<main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
 					<Routes>
 						<Route path="/" element={<Home posts={posts} isDark={isDark} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} currentUser={currentUser} onDeletePost={handleDeletePost} onLoginClick={() => setShowLoginModal(true)} />} />
-						<Route path="/login" element={<Login isDark={isDark} />} />
-						<Route path="/articles" element={<Articles posts={posts} isDark={isDark} currentUser={currentUser} onDeletePost={handleDeletePost} />} />
+						<Route path="/posts/:id" element={<PostView posts={posts} onEdit={handleUpdatePost} onDelete={handleDeletePost} onLike={handleLikePost} onAddComment={handleAddComment} isDark={isDark} currentUser={currentUser} />} />
+						<Route path="/login" element={<Login isDark={isDark} onLogin={handleLogin} />} />
+						<Route path="/articles" element={<Articles posts={posts} isDark={isDark} currentUser={currentUser} onDeletePost={handleDeletePost} onUpdatePost={handleUpdatePost} />} />
 						<Route path="/categories" element={<Categories isDark={isDark} posts={posts} onCategoryChange={setSelectedCategory} />} />
 						<Route path="/about" element={<About isDark={isDark} />} />
-						<Route path="/new-post" element={<CreatePostWrapper onSave={handleCreatePost} isDark={isDark} currentUser={currentUser} />} />
-						<Route path="/edit-post/:id" element={<EditPostWrapper posts={posts} onUpdatePost={handleUpdatePost} isDark={isDark} currentUser={currentUser} />} />
-						<Route path="/posts/:id" element={<ViewPostWrapper posts={posts} onEdit={handleUpdatePost} onDelete={handleDeletePost} isDark={isDark} currentUser={currentUser} />} />
+						<Route
+							path="/new-post"
+							element={
+								<ProtectedRoute currentUser={currentUser}>
+									<PostEditor onSave={handleCreatePost} isDark={isDark} currentUser={currentUser} />
+								</ProtectedRoute>
+							}
+						/>
+						<Route
+							path="/edit-post/:id"
+							element={
+								<ProtectedRoute currentUser={currentUser}>
+									<PostEditor posts={posts} onSave={handleUpdatePost} isDark={isDark} currentUser={currentUser} />
+								</ProtectedRoute>
+							}
+						/>
+						<Route path="/posts/:id" element={<PostView posts={posts} onEdit={handleUpdatePost} onDelete={handleDeletePost} isDark={isDark} currentUser={currentUser} />} />
 						<Route path="/profile" element={<UserProfile isDark={isDark} />} />
 					</Routes>
 

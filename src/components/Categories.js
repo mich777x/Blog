@@ -1,22 +1,23 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileText, TrendingUp } from "lucide-react";
 
 const Categories = ({ isDark, posts, onCategoryChange }) => {
 	const navigate = useNavigate();
+	const [categoryCounts, setCategoryCounts] = useState({});
 
 	// Calculate post counts for each category
-	const calculateCategoryCounts = () => {
+	useEffect(() => {
 		const counts = {};
 		posts.forEach((post) => {
-			post.categories.forEach((category) => {
-				counts[category] = (counts[category] || 0) + 1;
-			});
+			if (Array.isArray(post.categories)) {
+				post.categories.forEach((category) => {
+					counts[category] = (counts[category] || 0) + 1;
+				});
+			}
 		});
-		return counts;
-	};
-
-	const categoryCounts = calculateCategoryCounts();
+		setCategoryCounts(counts);
+	}, [posts]);
 
 	const categories = [
 		{

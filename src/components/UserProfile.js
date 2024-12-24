@@ -6,12 +6,12 @@ const UserProfile = ({ isDark }) => {
 
 	// Sample user data
 	const userData = {
-		name: "Sarah Johnson",
-		username: "@sarahjohnson",
+		name: "JohnDoe",
+		username: "@JohnDoe",
 		avatar: "/api/placeholder/150/150",
 		bio: "Senior Frontend Developer | Tech Writer | Open Source Contributor",
 		location: "San Francisco, CA",
-		website: "sarahjohnson.dev",
+		website: "JohnDoe.dev",
 		joinDate: "March 2024",
 		stats: {
 			articles: 45,
@@ -20,9 +20,9 @@ const UserProfile = ({ isDark }) => {
 			likes: 1253,
 		},
 		social: {
-			twitter: "@sarahjdev",
-			github: "sarahjohnson",
-			linkedin: "sarahjohnsondev",
+			twitter: "@JohnDoe",
+			github: "JohnDoe",
+			linkedin: "JohnDoe",
 		},
 	};
 

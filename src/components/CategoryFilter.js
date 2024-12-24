@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Filter, Search, X } from "lucide-react";
 
-const CategoryFilter = ({ isDark, categories, selectedCategory, onCategoryChange }) => {
+const CategoryFilter = ({ isDark, selectedCategory, onCategoryChange }) => {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [showAllCategories, setShowAllCategories] = useState(false);
 
