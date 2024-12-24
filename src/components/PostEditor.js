@@ -51,20 +51,20 @@ const PostEditor = ({ posts, onSave, isDark, currentUser }) => {
 		try {
 			const postData = {
 				...post,
-				id: id ? parseInt(id) : Date.now(),
-				author: currentUser,
-				date: post.date || new Date().toISOString(),
-				likes: post.likes || 0,
-				comments: post.comments || 0,
-				content: post.content.trim(), // Ensure clean text content
+				id: parseInt(id), // Ensure ID is always an integer
+				content: post.content.trim(),
 			};
 
-			await onSave(postData);
-			navigate("/");
+			const success = await onSave(postData);
+
+			if (!success) {
+				throw new Error("Failed to update post");
+			}
+
+			// Navigation is handled by the parent component
 		} catch (error) {
 			console.error("Error saving post:", error);
 			setErrors({ submit: "Failed to save post. Please try again." });
-		} finally {
 			setIsSubmitting(false);
 		}
 	};

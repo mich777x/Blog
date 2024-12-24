@@ -127,11 +127,38 @@ const App = () => {
 
 	// Update Post Handler
 	const handleUpdatePost = async (updatedPost) => {
-		setPosts((prevPosts) => {
-			const updatedPosts = prevPosts.map((post) => (post.id === updatedPost.id ? updatedPost : post));
-			DataService.savePosts(updatedPosts);
-			return updatedPosts;
-		});
+		try {
+			// First, update the posts state
+			const updatedPosts = posts.map((post) => {
+				if (post.id === updatedPost.id) {
+					return {
+						...post,
+						title: updatedPost.title,
+						excerpt: updatedPost.excerpt,
+						content: updatedPost.content,
+						categories: updatedPost.categories,
+						lastModified: new Date().toISOString(),
+					};
+				}
+				return post;
+			});
+
+			// Update state first
+			setPosts(updatedPosts);
+
+			// Save to DataService
+			await DataService.savePosts(updatedPosts);
+
+			// Navigate after ensuring state is updated
+			setTimeout(() => {
+				navigate(`/posts/${updatedPost.id}`);
+			}, 0);
+
+			return true; // Indicate success
+		} catch (error) {
+			console.error("Error updating post:", error);
+			return false; // Indicate failure
+		}
 	};
 
 	// Delete Post Handler
