@@ -5,7 +5,7 @@ const topics = ["All", "Technology", "Development", "Design", "AI & ML", "Mobile
 const authors = [
 	{
 		id: 1,
-		name: "John Doe",
+		name: "Demo User",
 		avatar: "https://picsum.photos/seed/author1/100/100",
 		role: "Senior Developer",
 	},

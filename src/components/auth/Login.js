@@ -73,12 +73,7 @@ const Login = ({ isDark, onLogin }) => {
 						</button>
 					</div>
 
-					<button
-						type="submit"
-						disabled={loading}
-						className={`w-full py-3 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
-              transition-colors ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
-					>
+					<button type="submit" disabled={loading} className={`w-full py-3 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors ${loading ? "opacity-50 cursor-not-allowed" : ""}`}>
 						{loading ? "Signing in..." : "Sign In"}
 					</button>
 				</form>
