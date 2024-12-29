@@ -1,11 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import FeaturedPost from "./FeaturedPost";
-import CategoryFilter from "./CategoryFilter";
-import ArticleCard from "./ArticleCard";
-import TrendingTopics from "./TrendingTopics";
-import Newsletter from "./Newsletter";
-import AuthorCard from "./AuthorCard";
+import FeaturedPost from "./posts/FeaturedPost";
+import CategoryFilter from "./categories/CategoryFilter";
+import Articles from "./posts/Articles";
+import TrendingTopics from "./sidebar/TrendingTopics";
+import PopularPosts from "./sidebar/PopularPosts";
 
 const Home = ({ posts, isDark, selectedCategory, setSelectedCategory, currentUser, onDeletePost }) => {
 	// Filter posts based on selected category
@@ -27,7 +26,7 @@ const Home = ({ posts, isDark, selectedCategory, setSelectedCategory, currentUse
 
 			{/* Category Filter */}
 			<div className="py-6">
-				<CategoryFilter isDark={isDark} categories={["All", "Technology", "Development", "Design"]} selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} />
+				<CategoryFilter isDark={isDark} selectedCategory={selectedCategory} onCategoryChange={setSelectedCategory} />
 			</div>
 
 			{/* Main Content Grid */}
@@ -43,22 +42,13 @@ const Home = ({ posts, isDark, selectedCategory, setSelectedCategory, currentUse
 						)}
 					</div>
 
-					{latestPosts.length > 0 ? (
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-							{latestPosts.map((post) => (
-								<ArticleCard key={post.id} article={post} isDark={isDark} onDelete={onDeletePost} currentUser={currentUser} posts={posts} />
-							))}
-						</div>
-					) : (
-						<div className={`text-center py-12 ${isDark ? "text-gray-400" : "text-gray-600"}`}>{selectedCategory === "All" ? <p className="text-lg">{posts.length === 1 ? "Create your first post to see it here!" : "No additional articles yet."}</p> : <p className="text-lg">No articles found in this category.</p>}</div>
-					)}
+					{latestPosts.length > 0 ? <Articles posts={latestPosts} isDark={isDark} currentUser={currentUser} onDelete={onDeletePost} /> : <div className={`text-center py-12 ${isDark ? "text-gray-400" : "text-gray-600"}`}>{selectedCategory === "All" ? <p className="text-lg">{posts.length === 1 ? "Create your first post to see it here!" : "No additional articles yet."}</p> : <p className="text-lg">No articles found in this category.</p>}</div>}
 				</div>
 
 				{/* Sidebar */}
 				<div className="col-span-12 lg:col-span-4 space-y-8">
-					<TrendingTopics isDark={isDark} />
-					<Newsletter isDark={isDark} />
-					<AuthorCard author={currentUser} isDark={isDark} />
+					<TrendingTopics isDark={isDark} posts={posts} />
+					<PopularPosts isDark={isDark} posts={posts} />
 				</div>
 			</div>
 		</>

@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, Bell, Sun, Moon, User, LogOut, Settings } from "lucide-react";
-import SearchOverlay from "./SearchOverlay";
+import { Search, Sun, Moon, LogOut } from "lucide-react";
+import SearchOverlay from "../search/SearchOverlay";
 
 const Header = ({ isDark, toggleTheme, currentUser, onLogout, posts }) => {
 	const [isSearchOpen, setIsSearchOpen] = useState(false);
-	const [showNotifications, setShowNotifications] = useState(false);
 	const [showProfileMenu, setShowProfileMenu] = useState(false);
 	const location = useLocation();
 	const navigate = useNavigate();

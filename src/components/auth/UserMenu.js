@@ -1,6 +1,6 @@
 // components/UserMenu.js
 import React, { useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { User, LogOut, Settings } from "lucide-react";
 
 const UserMenu = ({ isDark }) => {

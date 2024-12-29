@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
-import Header from "./components/Header";
+import Header from "./components/layout/Header";
 import Home from "./components/Home";
-import Articles from "./components/Articles";
-import Categories from "./components/Categories";
-import About from "./components/About";
-import PostEditor from "./components/PostEditor";
-import PostView from "./components/PostView";
-import ProtectedRoute from "./components/ProtectedRoute";
+import Articles from "./components/posts/Articles";
+import Categories from "./components/categories/Categories";
+import About from "./components/static/About";
+import PostEditor from "./components/posts/PostEditor";
+import PostView from "./components/posts/PostView";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { UserProvider } from "./contexts/UserContext";
-import Login from "./components/Login";
+import Login from "./components/auth/Login";
 import { generateRandomPosts } from "./utils/postGenerator";
 import DataService from "./services/DataService";
 
